@@ -15,15 +15,33 @@ function login(req, res) {
 	req.body.email = (req.body.email).toLowerCase();
 	User.getAuthenticated(req.body.email, function (err, user, reason) {
 		if (err) return res.status(500).send({ message: err })
-
-		// login was successful if we have a user
+		let randomstring = Math.random().toString(36).slice(-12);
+		let dateTimeLogin = Date.now();
 		if (!user) {
-			return res.status(500).send({ message: `Fail` })
+			console.log('no user')
+			let user = new User()
+			user.email = req.body.email
+			user.confirmationCode = randomstring
+			user.dateTimeLogin = dateTimeLogin
+			user.save((err, userStored) => {
+				if (err) {
+					insights.error(err);
+					return res.status(500).send({ message: `Error creating the user: ${err}` })
+				}
+				if (userStored) {
+					//send email
+					serviceEmail.sendEmailLogin(userStored.email, userStored.confirmationCode)
+					return res.status(200).send({
+						message: 'Check email'
+					})
+				} else {
+					insights.error("The user does not exist");
+					return res.status(404).send({ code: 208, message: `The user does not exist` })
+				}
+			})
+			//return res.status(500).send({ message: `Fail` })
 			
 		} else {
-			let randomstring = Math.random().toString(36).slice(-12);
-			let dateTimeLogin = Date.now();
-			
 			User.findOne({ 'email': req.body.email }, function (err, user2) {
 				if (err){
 					insights.error(err);

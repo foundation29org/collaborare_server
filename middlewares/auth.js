@@ -11,7 +11,7 @@ function isAuth (roles){
 		}
 
 		const token = req.headers.authorization.split(" ")[1] //convertir en array con los separados en blando
-		serviceAuth.decodeToken(token, roles)
+		serviceAuth.decodeToken(token, roles, req.body.id)
 			.then(response => {
 				req.user = response
 				next()
