@@ -7,6 +7,7 @@ const Diseases = require('../../models/diseases')
 const serviceAuth = require('../../services/auth')
 const User = require('../../models/user');
 const { decrypt } = require('../../services/crypt');
+const fs = require('fs');
 
 function getDiseases(req, res){
 	Diseases.find((err, eventsdb) => {
@@ -25,8 +26,21 @@ function saveDisease(req, res){
 	let eventdb = new Diseases()
 	eventdb.id = req.body.id
 	eventdb.name = req.body.name
-	eventdb.items = req.body.items
+	eventdb.items = []
 	eventdb.updated = Date.now()
+
+	let jsonData = loadJsonFile()
+	if (jsonData) {
+		const item = findItemById(req.body.id, jsonData);
+		if (item) {
+			console.log('Item found:', item);
+			eventdb.items = item.items;
+		} else {
+			console.log('Item not found for ID:', idToCheck);
+		}
+	} else {
+		console.log('JSON data not loaded');
+	}
 	eventdb.save((err, eventdbStored) => {
 		if (err) {
 			res.status(500).send({message: `Failed to save in the database: ${err} `})
@@ -50,6 +64,21 @@ function saveDisease(req, res){
 	})
 
 
+}
+
+function findItemById(id, jsonData) {
+    return jsonData.find(item => item.id === id);
+}
+
+function loadJsonFile() {
+    try {
+		var url = './models/Final_List_200.json'
+		var json = JSON.parse(fs.readFileSync(url, 'utf8'));
+        return json
+    } catch (error) {
+        console.error('Error reading file:', error);
+        return null;
+    }
 }
 
 function getDisease(req, res){
