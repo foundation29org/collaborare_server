@@ -35,9 +35,7 @@ api.post('/login', checkApiKey, userCtrl.login)
 api.post('/checkLogin', checkApiKey, userCtrl.checkLogin)
 
 //Support
-api.post('/support/', auth(roles.OnlyUser), checkApiKey, supportCtrl.sendMsgSupport)
 api.post('/homesupport/', supportCtrl.sendMsgLogoutSupport)
-api.get('/support/:userId', auth(roles.OnlyUser), checkApiKey, supportCtrl.getUserMsgs)
 
 
 //service feedback
@@ -46,6 +44,8 @@ api.post('/feedbackdev', auth(roles.OnlyUser), checkApiKey, feedbackDevCtrl.send
 //disease
 api.get('/disease/:id', diseaseCtrl.getDisease)
 api.put('/disease/:id', auth(roles.OnlyUser), diseaseCtrl.updateDisease)
+api.post('/disease/:userId', auth(roles.OnlyUser), diseaseCtrl.saveDisease)
+api.post('/deletedisease/:userId', auth(roles.OnlyUser), diseaseCtrl.deleteDisease)
 
 /*api.get('/testToken', auth, (req, res) => {
 	res.status(200).send(true)

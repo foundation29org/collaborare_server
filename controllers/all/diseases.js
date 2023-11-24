@@ -4,6 +4,9 @@
 
 // add the social-info model
 const Diseases = require('../../models/diseases')
+const serviceAuth = require('../../services/auth')
+const User = require('../../models/user');
+const { decrypt } = require('../../services/crypt');
 
 function getDiseases(req, res){
 	Diseases.find((err, eventsdb) => {
@@ -18,6 +21,7 @@ function getDiseases(req, res){
 }
 
 function saveDisease(req, res){
+	let userId = decrypt(req.params.userId)
 	let eventdb = new Diseases()
 	eventdb.id = req.body.id
 	eventdb.name = req.body.name
@@ -28,7 +32,20 @@ function saveDisease(req, res){
 			res.status(500).send({message: `Failed to save in the database: ${err} `})
 		}
 		if(eventdbStored){
-			res.status(200).send({message: 'Eventdb created'})
+			User.findByIdAndUpdate(userId, {orphacode: req.body.id}, {new: true}, (err, userUpdated) => {
+				if (err) return res.status(500).send({message: `Error making the request: ${err}`})
+				if(userUpdated){
+					return res.status(200).send({
+						message: 'You have successfully logged in',
+						token: serviceAuth.createToken(userUpdated),
+						eventdb: eventdbStored.id
+					})
+				}else{
+					return res.status(404).send({message: 'User not updated'})
+				}
+			})
+		}else{
+			res.status(404).send({message: 'Eventdb not saved'})
 		}
 	})
 
@@ -65,7 +82,36 @@ function updateDisease (req, res){
 	})
 }
 
+function deleteDisease (req, res){
+	let diseaseId= req.body.id;
+	let userId = decrypt(req.params.userId)
+	Diseases.findById(diseaseId, (err,eventdb) => {
+		if (err) return res.status(500).send({message: `Error making the request: ${err}`})
+		if (!eventdb) return res.status(404).send({message: `The eventdb does not exist`})
+
+		eventdb.remove(err => {
+			if (err) return res.status(500).send({message: `Error making the request: ${err}`})
+
+			User.findByIdAndUpdate(userId, {orphacode: null}, {new: true}, (err, userUpdated) => {
+				if (err) return res.status(500).send({message: `Error making the request: ${err}`})
+				if(userUpdated){
+					return res.status(200).send({
+						message: 'You have successfully logged in',
+						token: serviceAuth.createToken(userUpdated),
+						eventdb: null
+					})
+				}else{
+					return res.status(404).send({message: 'User not updated'})
+				}
+			})
+			//res.status(200).send({message: 'Eventdb deleted'})
+		})
+	})
+}
+
 module.exports = {
 	getDisease,
-	updateDisease
+	updateDisease,
+	saveDisease,
+	deleteDisease
 }
