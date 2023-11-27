@@ -47,6 +47,8 @@ api.put('/disease/:id', auth(roles.OnlyUser), diseaseCtrl.updateDisease)
 api.post('/disease/:userId', auth(roles.OnlyUser), diseaseCtrl.saveDisease)
 api.post('/deletedisease/:userId', auth(roles.OnlyUser), diseaseCtrl.deleteDisease)
 
+api.get('/searchdisease/:id', diseaseCtrl.searchDisease)
+
 /*api.get('/testToken', auth, (req, res) => {
 	res.status(200).send(true)
 })*/
