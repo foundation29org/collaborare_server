@@ -149,9 +149,44 @@ function deleteDisease (req, res){
 	})
 }
 
+function searchDisease(req, res){
+	let searchTerm = req.params.id.trim();
+
+    // Validación básica de la entrada
+    if (!searchTerm || searchTerm.length > 100) { // Limita la longitud de la entrada
+        return res.status(400).send({ message: "Invalid search term" });
+    }
+
+    let query = {};
+
+    // Comprobar si la búsqueda es numérica
+    if (/^\d+$/.test(searchTerm)) {
+        query.id = searchTerm.startsWith('ORPHA:') ? searchTerm : `ORPHA:${searchTerm}`;
+    } else {
+        // Utilizar una expresión regular segura
+        // Evitar expresiones regulares demasiado complejas o largas
+        query.name = { $regex: new RegExp(searchTerm, 'i') };
+    }
+
+    let collationConfig = {
+        locale: 'es',
+        strength: 1
+    };
+
+    Diseases.find(query).collation(collationConfig)
+            .limit(50) // Limitar el número de resultados
+            .exec((err, diseases) => {
+        if (err) return res.status(500).send({ message: `Error making the request: ${err}` });
+        if (!diseases || diseases.length === 0) return res.status(200).send({ message: `No matching diseases found` });
+
+        res.status(200).send({ diseases });
+    });
+}
+
 module.exports = {
 	getDisease,
 	updateDisease,
 	saveDisease,
-	deleteDisease
+	deleteDisease,
+	searchDisease
 }
