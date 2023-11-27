@@ -8,6 +8,7 @@ const serviceAuth = require('../../services/auth')
 const User = require('../../models/user');
 const { decrypt } = require('../../services/crypt');
 const fs = require('fs');
+const langchain = require('../../services/langchain');
 
 function getDiseases(req, res){
 	Diseases.find((err, eventsdb) => {
@@ -21,7 +22,7 @@ function getDiseases(req, res){
 	});
 }
 
-function saveDisease(req, res){
+async function saveDisease(req, res){
 	let userId = decrypt(req.params.userId)
 	let eventdb = new Diseases()
 	eventdb.id = req.body.id
@@ -36,7 +37,17 @@ function saveDisease(req, res){
 			console.log('Item found:', item);
 			eventdb.items = item.items;
 		} else {
-			console.log('Item not found for ID:', idToCheck);
+			console.log('Item not found for ID:', req.body.id);
+			console.log('Trying to generate items for:', req.body.name);
+			try {
+				let item_list = await langchain.generate_items_for_disease(req.body.name);
+				console.log('Generated items:', item_list);
+				// Convert the generated items text to an array of items
+				let itemsArray = JSON.parse(item_list.text.replace(/'/g, '"'));
+				eventdb.items = itemsArray;
+			} catch (error) {
+				console.error('Error generating items:', error);
+			}
 		}
 	} else {
 		console.log('JSON data not loaded');
