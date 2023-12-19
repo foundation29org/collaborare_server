@@ -174,6 +174,7 @@ function searchDisease(req, res){
     };
 
     Diseases.find(query).collation(collationConfig)
+			.select('-_id')
             .limit(50) // Limitar el número de resultados
             .exec((err, diseases) => {
         if (err) return res.status(500).send({ message: `Error making the request: ${err}` });
