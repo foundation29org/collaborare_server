@@ -93,7 +93,9 @@ function checkLogin(req, res) {
 					token: serviceAuth.createToken(user2)
 				})
 			}else{
-				return res.status(500).send({ message: `Fail` })
+				return res.status(200).send({
+					message: 'Link expired'
+				})
 			}
 		}
 	})
