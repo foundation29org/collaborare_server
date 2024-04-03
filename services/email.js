@@ -20,6 +20,7 @@ var options = {
 
 function sendMailSupport (email, supportStored){
   const decoded = new Promise((resolve, reject) => {
+    console.log(supportStored)
     var maillistbcc = [
       TRANSPORTER_OPTIONS.auth.user
     ];
@@ -28,11 +29,11 @@ function sendMailSupport (email, supportStored){
       to: TRANSPORTER_OPTIONS.auth.user,
       from: TRANSPORTER_OPTIONS.auth.user,
       bcc: maillistbcc,
-      subject: 'Mensaje para soporte de RAITO CARE',
+      subject: 'Mensaje para soporte de Collaborare',
       template: 'mail_support/_es',
       context: {
         email : email,
-        info: supportStored.toObject()
+        description: supportStored.description
       }
     };
 
