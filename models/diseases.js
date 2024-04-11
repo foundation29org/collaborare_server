@@ -11,7 +11,8 @@ const DiseasesSchema = Schema({
 	name: { type: String, required: true},
 	items: {type: Object, default: []},
 	date: {type: Date, default: Date.now},
-	updated: {type: Date, default: Date.now}
+	updated: {type: Date, default: Date.now},
+	createdBy: { type: Schema.Types.ObjectId, ref: "User"},
 })
 
 module.exports = conndbaccounts.model('Diseases',DiseasesSchema)

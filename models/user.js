@@ -38,7 +38,10 @@ const UserSchema = Schema({
 	lockUntil: { type: Number },
 	dateTimeLogin: Date,
 	blockedaccount: { type: Boolean, default: false },
-	orphacode: { type: String, default: null }
+	orphacode: { type: String, default: null },
+	contactEmail: { type: String, default: '' },
+	web: { type: String, default: '' },
+	organization : { type: String, default: '' },
 })
 
 

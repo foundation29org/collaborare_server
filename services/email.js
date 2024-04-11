@@ -54,6 +54,43 @@ function sendMailSupport (email, supportStored){
   return decoded
 }
 
+
+function sendMailValidator (email, subject, message, contactEmail){
+  const decoded = new Promise((resolve, reject) => {
+    var maillistbcc = [
+      TRANSPORTER_OPTIONS.auth.user
+    ];
+
+    var mailOptions = {
+      to: contactEmail,
+      from: TRANSPORTER_OPTIONS.auth.user,
+      bcc: maillistbcc,
+      subject: 'New contact request from Collaborare: '+ subject,
+      template: 'mail_validator/_en',
+      context: {
+        email: email,
+        subject: subject,
+        message : message
+      }
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        insights.error(error);
+        console.log(error);
+        reject({
+          status: 401,
+          message: 'Fail sending email'
+        })
+      } else {
+        resolve("ok")
+      }
+    });
+
+  });
+  return decoded
+}
+
 function sendMailDev (params){
   const decoded = new Promise((resolve, reject) => {
 
@@ -163,6 +200,7 @@ function sendEmailLogin (email, randomstring){
 
 module.exports = {
   sendMailSupport,
+  sendMailValidator,
   sendMailDev,
   sendMailControlCall,
   sendEmailLogin

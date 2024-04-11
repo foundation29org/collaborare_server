@@ -6,7 +6,7 @@
 const Diseases = require('../../models/diseases')
 const serviceAuth = require('../../services/auth')
 const User = require('../../models/user');
-const { decrypt } = require('../../services/crypt');
+const { decrypt, encrypt } = require('../../services/crypt');
 const fs = require('fs');
 const langchain = require('../../services/langchain');
 
@@ -29,6 +29,7 @@ async function saveDisease(req, res){
 	eventdb.name = req.body.name
 	eventdb.items = []
 	eventdb.updated = Date.now()
+	eventdb.createdBy = userId
 
 	let jsonData = loadJsonFile()
 	if (jsonData) {
@@ -180,7 +181,19 @@ function searchDisease(req, res){
         if (err) return res.status(500).send({ message: `Error making the request: ${err}` });
         if (!diseases || diseases.length === 0) return res.status(200).send({ message: `No matching diseases found` });
 
-        res.status(200).send({ diseases });
+        // Iterar sobre cada enfermedad y añadir el userId cifrado
+        const modifiedDiseases = diseases.map(disease => {
+            // Asegúrate de que la enfermedad es un objeto plano para modificarlo
+            const diseaseObj = disease.toObject();
+            // Cifrar createdBy y asignarlo a userId
+			let userId = diseaseObj.createdBy.toString();
+            diseaseObj.id = encrypt(userId);
+            // Eliminar createdBy para no enviarlo en la respuesta
+            delete diseaseObj.createdBy;
+            return diseaseObj;
+        });
+
+        res.status(200).send({ diseases: modifiedDiseases });
     });
 }
 
