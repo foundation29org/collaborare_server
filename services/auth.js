@@ -37,7 +37,8 @@ function decodeToken(token, roles, orphacode){
 						if(user){
 							console.log(user.orphacode)
 							console.log(payload.orphacode)
-							if(user.role!=payload.role || userId!=user._id || (user.orphacode!=payload.orphacode || (user.orphacode==null && orphacode==null))){
+							//if(user.role!=payload.role || userId!=user._id || (user.orphacode!=payload.orphacode || (user.orphacode==null && orphacode==null))){
+							if(user.role!=payload.role || userId!=user._id || (user.orphacode!=payload.orphacode)){
 								reject({
 									status: 403,
 									message: 'Hacker!'
