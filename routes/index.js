@@ -34,6 +34,11 @@ const checkApiKey = (req, res, next) => {
 api.post('/login', checkApiKey, userCtrl.login)
 api.post('/checkLogin', checkApiKey, userCtrl.checkLogin)
 
+api.get('/validator/:userId', userCtrl.getValidator)
+api.post('/validator/:userId', userCtrl.sendMsgValidator)
+api.get('/profile/:userId', auth(roles.OnlyUser), userCtrl.getProfile)
+api.put('/profile/:userId', auth(roles.OnlyUser), userCtrl.updateProfile)
+
 //Support
 api.post('/homesupport/', supportCtrl.sendMsgLogoutSupport)
 

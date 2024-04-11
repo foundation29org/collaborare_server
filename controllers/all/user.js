@@ -6,8 +6,7 @@
 const User = require('../../models/user')
 const serviceAuth = require('../../services/auth')
 const serviceEmail = require('../../services/email')
-const crypt = require('../../services/crypt')
-const bcrypt = require('bcrypt-nodejs')
+const { decrypt } = require('../../services/crypt');
 const insights = require('../../services/insights')
 
 function login(req, res) {
@@ -101,7 +100,68 @@ function checkLogin(req, res) {
 	})
 }
 
+function getValidator(req, res) {
+	let userId = decrypt(req.params.userId)
+	//get the fields contactEmail, web, and organization
+	User.findById(userId, 'web organization -_id', (err, user) => {
+		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
+		if (!user) return res.status(404).send({ message: `The user does not exist` })
+
+		res.status(200).send({ user })
+	})
+}
+
+function sendMsgValidator(req, res) {
+	let userId = decrypt(req.params.userId)
+	//get the fields contactEmail, web, and organization
+	User.findById(userId, 'contactEmail -_id', (err, user) => {
+		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
+		if (!user) return res.status(404).send({ message: `The user does not exist` })
+
+		serviceEmail.sendMailValidator(req.body.email, req.body.subject, req.body.message, user.contactEmail)
+		.then(response => {
+			return res.status(200).send({ message: 'Email sent' })
+		})
+		.catch(response => {
+			insights.error(response);
+			res.status(500).send({ message: 'Fail sending email' })
+		})
+	})
+}
+
+function getProfile(req, res) {
+	let userId = decrypt(req.params.userId)
+	//get the fields contactEmail, web, and organization
+	User.findById(userId, 'contactEmail web organization -_id', (err, user) => {
+		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
+		if (!user) return res.status(404).send({ message: `The user does not exist` })
+
+		res.status(200).send({ user })
+	})
+}
+
+function updateProfile(req, res) {
+	console.log(req.body)
+	console.log(req.body.contactEmail)
+	let userId = decrypt(req.params.userId)
+	let update = {
+		contactEmail: req.body.contactEmail,
+		web: req.body.web,
+		organization: req.body.organization
+	}
+
+	User.findByIdAndUpdate(userId, update, { new: true }, (err, userUpdated) => {
+		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
+		if (userUpdated) return res.status(200).send({ message: 'Profile updated ' })
+		else return res.status(404).send({ message: `The user does not exist` })
+	})
+}
+
 module.exports = {
 	login,
-	checkLogin
+	checkLogin,
+	getValidator,
+	sendMsgValidator,
+	getProfile,
+	updateProfile
 }
