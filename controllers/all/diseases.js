@@ -24,56 +24,52 @@ function getDiseases(req, res){
 
 async function saveDisease(req, res){
 	let userId = decrypt(req.params.userId)
-	let eventdb = new Diseases()
-	eventdb.id = req.body.id
-	eventdb.name = req.body.name
-	eventdb.items = []
-	eventdb.updated = Date.now()
-	eventdb.createdBy = userId
-
-	let jsonData = loadJsonFile()
-	if (jsonData) {
-		const item = findItemById(req.body.id, jsonData);
-		if (item) {
-			console.log('Item found:', item);
-			eventdb.items = item.items;
-		} else {
-			console.log('Item not found for ID:', req.body.id);
-			console.log('Trying to generate items for:', req.body.name);
-			try {
-				let item_list = await langchain.generate_items_for_disease(req.body.name);
-				console.log('Generated items:', item_list);
-				// Convert the generated items text to an array of items
-				let itemsArray = JSON.parse(item_list.text.replace(/'/g, '"'));
-				eventdb.items = itemsArray;
-			} catch (error) {
-				console.error('Error generating items:', error);
+	//update de Disease with userId is createdBy, with the items and the name and the id and the date
+	Diseases.findOne({createdBy: userId}, async (err,eventdb) => {
+		if (err) return res.status(500).send({message: `Error making the request: ${err}`})
+		if (!eventdb) return res.status(200).send({message: `The eventdb does not exist`})
+		if(eventdb){
+			let jsonData = loadJsonFile()
+			if (jsonData) {
+				const item = findItemById(req.body.id, jsonData);
+				if (item) {
+					console.log('Item found:', item);
+					eventdb.items = item.items;
+				} else {
+					console.log('Item not found for ID:', req.body.id);
+					console.log('Trying to generate items for:', req.body.name);
+					try {
+						let item_list = await langchain.generate_items_for_disease(req.body.name);
+						console.log('Generated items:', item_list);
+						// Convert the generated items text to an array of items
+						let itemsArray = JSON.parse(item_list.text.replace(/'/g, '"'));
+						eventdb.items = itemsArray;
+						eventdb.updated = Date.now()
+						eventdb.id = req.body.id
+						eventdb.name = req.body.name
+					} catch (error) {
+						console.error('Error generating items:', error);
+					}
+				}
+			} else {
+				console.log('JSON data not loaded');
 			}
-		}
-	} else {
-		console.log('JSON data not loaded');
-	}
-	eventdb.save((err, eventdbStored) => {
-		if (err) {
-			res.status(500).send({message: `Failed to save in the database: ${err} `})
-		}
-		if(eventdbStored){
-			User.findByIdAndUpdate(userId, {orphacode: req.body.id}, {new: true}, (err, userUpdated) => {
-				if (err) return res.status(500).send({message: `Error making the request: ${err}`})
-				if(userUpdated){
+			eventdb.save((err, eventdbStored) => {
+				if (err) {
+					res.status(500).send({message: `Failed to save in the database: ${err} `})
+				}
+				if(eventdbStored){
 					return res.status(200).send({
-						message: 'You have successfully logged in',
-						token: serviceAuth.createToken(userUpdated),
-						eventdb: eventdbStored.id
+						message: 'Data saved successfully'
 					})
 				}else{
-					return res.status(404).send({message: 'User not updated'})
+					res.status(404).send({message: 'Eventdb not saved'})
 				}
 			})
-		}else{
-			res.status(404).send({message: 'Eventdb not saved'})
 		}
 	})
+
+
 
 
 }
@@ -93,13 +89,22 @@ function loadJsonFile() {
     }
 }
 
-function getDisease(req, res){
+function selectDisease(req, res){
 
 	let orphacode = req.params.id;
-	console.log(orphacode)
 	Diseases.findOne({id: orphacode}, (err,eventdb) => {
 		if (err) return res.status(500).send({message: `Error making the request: ${err}`})
 		if (!eventdb) return res.status(200).send({message: `The eventdb does not exist`})
+
+		res.status(200).send({ disease: eventdb })
+	})
+}
+
+function getDisease(req, res){
+	let userId = decrypt(req.params.userId)
+	Diseases.findOne({createdBy: userId}, (err,eventdb) => {
+		if (err) return res.status(500).send({message: `Error making the request: ${err}`})
+		if (!eventdb) return res.status(200).send({message: `The disease does not exist`})
 
 		res.status(200).send({ disease: eventdb })
 	})
@@ -132,20 +137,9 @@ function deleteDisease (req, res){
 
 		eventdb.remove(err => {
 			if (err) return res.status(500).send({message: `Error making the request: ${err}`})
-
-			User.findByIdAndUpdate(userId, {orphacode: null}, {new: true}, (err, userUpdated) => {
-				if (err) return res.status(500).send({message: `Error making the request: ${err}`})
-				if(userUpdated){
-					return res.status(200).send({
-						message: 'You have successfully logged in',
-						token: serviceAuth.createToken(userUpdated),
-						eventdb: null
-					})
-				}else{
-					return res.status(404).send({message: 'User not updated'})
-				}
+			return res.status(200).send({
+				message: 'Deleted disease successfully'
 			})
-			//res.status(200).send({message: 'Eventdb deleted'})
 		})
 	})
 }
@@ -189,6 +183,9 @@ function searchDisease(req, res){
 			let userId = diseaseObj.createdBy.toString();
             diseaseObj.id = encrypt(userId);
             // Eliminar createdBy para no enviarlo en la respuesta
+			delete diseaseObj.validatorInfo.contactEmail;
+			delete diseaseObj.validatorInfo.acceptTerms;
+			delete diseaseObj.validatorInfo._id;
             delete diseaseObj.createdBy;
             return diseaseObj;
         });
@@ -198,6 +195,7 @@ function searchDisease(req, res){
 }
 
 module.exports = {
+	selectDisease,
 	getDisease,
 	updateDisease,
 	saveDisease,

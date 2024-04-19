@@ -15,13 +15,12 @@ function createToken (user){
 		sub: idencrypt,
 		iat: moment().unix(),
 		exp: moment().add(1, 'years').unix(),//years //minutes
-		role: user.role,
-		orphacode: user.orphacode
+		role: user.role
 	}
 	return jwt.encode(payload, config.SECRET_TOKEN)
 }
 
-function decodeToken(token, roles, orphacode){
+function decodeToken(token, roles){
 	const decoded = new Promise(async (resolve, reject) => {
 		try{
 			const payload = jwt.decode(token, config.SECRET_TOKEN)
@@ -35,10 +34,7 @@ function decodeToken(token, roles, orphacode){
 						})
 					}else{
 						if(user){
-							console.log(user.orphacode)
-							console.log(payload.orphacode)
-							//if(user.role!=payload.role || userId!=user._id || (user.orphacode!=payload.orphacode || (user.orphacode==null && orphacode==null))){
-							if(user.role!=payload.role || userId!=user._id || (user.orphacode!=payload.orphacode)){
+							if(user.role!=payload.role || userId!=user._id ){
 								reject({
 									status: 403,
 									message: 'Hacker!'
