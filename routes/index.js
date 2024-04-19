@@ -34,7 +34,6 @@ const checkApiKey = (req, res, next) => {
 api.post('/login', checkApiKey, userCtrl.login)
 api.post('/checkLogin', checkApiKey, userCtrl.checkLogin)
 
-api.get('/validator/:userId', userCtrl.getValidator)
 api.post('/validator/:userId', userCtrl.sendMsgValidator)
 api.get('/profile/:userId', auth(roles.OnlyUser), userCtrl.getProfile)
 api.put('/profile/:userId', auth(roles.OnlyUser), userCtrl.updateProfile)
@@ -47,7 +46,8 @@ api.post('/homesupport/', supportCtrl.sendMsgLogoutSupport)
 api.post('/feedbackdev', auth(roles.OnlyUser), checkApiKey, feedbackDevCtrl.sendMsgDev)
 
 //disease
-api.get('/disease/:id', diseaseCtrl.getDisease)
+api.get('/selectdisease/:userId', diseaseCtrl.selectDisease)
+api.get('/disease/:userId', diseaseCtrl.getDisease)
 api.put('/disease/:id', auth(roles.OnlyUser), diseaseCtrl.updateDisease)
 api.post('/disease/:userId', auth(roles.OnlyUser), diseaseCtrl.saveDisease)
 api.post('/deletedisease/:userId', auth(roles.OnlyUser), diseaseCtrl.deleteDisease)

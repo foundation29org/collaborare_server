@@ -37,11 +37,7 @@ const UserSchema = Schema({
 	loginAttempts: { type: Number, required: true, default: 0 },
 	lockUntil: { type: Number },
 	dateTimeLogin: Date,
-	blockedaccount: { type: Boolean, default: false },
-	orphacode: { type: String, default: null },
-	contactEmail: { type: String, default: '' },
-	web: { type: String, default: '' },
-	organization : { type: String, default: '' },
+	blockedaccount: { type: Boolean, default: false }
 })
 
 
@@ -119,7 +115,7 @@ UserSchema.statics.getAuthenticated = function (email, cb) {
 			if (err) return cb(err);
 			return cb(null, user);
 		});
-	}).select('_id email loginAttempts lockUntil confirmed lastLogin role dateTimeLogin blockedaccount orphacode');
+	}).select('_id email loginAttempts lockUntil confirmed lastLogin role dateTimeLogin blockedaccount');
 };
 
 module.exports = conndbaccounts.model('User', UserSchema)

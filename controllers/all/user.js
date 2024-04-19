@@ -4,6 +4,7 @@
 
 // add the user model
 const User = require('../../models/user')
+const Diseases = require('../../models/diseases')
 const serviceAuth = require('../../services/auth')
 const serviceEmail = require('../../services/email')
 const { decrypt } = require('../../services/crypt');
@@ -100,28 +101,17 @@ function checkLogin(req, res) {
 	})
 }
 
-function getValidator(req, res) {
-	let userId = decrypt(req.params.userId)
-	//get the fields contactEmail, web, and organization
-	User.findById(userId, 'web organization -_id', (err, user) => {
-		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
-		if (!user) return res.status(404).send({ message: `The user does not exist` })
-
-		res.status(200).send({ user })
-	})
-}
-
 function sendMsgValidator(req, res) {
 	let userId = decrypt(req.params.userId)
-	//get the fields contactEmail, web, and organization
-	User.findById(userId, 'contactEmail -_id', (err, user) => {
+	Diseases.findOne({ createdBy: userId}, 'validatorInfo -_id', (err, disease) => {
 		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
-		if (!user) return res.status(404).send({ message: `The user does not exist` })
+		if (!disease) return res.status(200).send({ message: `The user does not exist` })
 
-		serviceEmail.sendMailValidator(req.body.email, req.body.subject, req.body.message, user.contactEmail)
+		serviceEmail.sendMailValidator(req.body.email, req.body.subject, req.body.message, disease.validatorInfo.contactEmail)
 		.then(response => {
 			return res.status(200).send({ message: 'Email sent' })
-		})
+		}
+		)
 		.catch(response => {
 			insights.error(response);
 			res.status(500).send({ message: 'Fail sending email' })
@@ -131,36 +121,56 @@ function sendMsgValidator(req, res) {
 
 function getProfile(req, res) {
 	let userId = decrypt(req.params.userId)
-	//get the fields contactEmail, web, and organization
-	User.findById(userId, 'contactEmail web organization -_id', (err, user) => {
+	Diseases.findOne({ createdBy: userId }, 'validatorInfo -_id', (err, disease) => {
+		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
+		if (!disease) return res.status(200).send({ message: `The user does not exist` })
+		res.status(200).send(disease)
+	})
+
+	/*User.findById(userId, 'contactEmail web organization country acceptTerms -_id', (err, user) => {
 		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
 		if (!user) return res.status(404).send({ message: `The user does not exist` })
 
 		res.status(200).send({ user })
-	})
+	})*/
 }
 
 function updateProfile(req, res) {
 	console.log(req.body)
-	console.log(req.body.contactEmail)
 	let userId = decrypt(req.params.userId)
 	let update = {
 		contactEmail: req.body.contactEmail,
 		web: req.body.web,
-		organization: req.body.organization
+		organization: req.body.organization,
+		country: req.body.country,
+		acceptTerms: req.body.acceptTerms
 	}
 
-	User.findByIdAndUpdate(userId, update, { new: true }, (err, userUpdated) => {
+	Diseases.findOneAndUpdate({ createdBy: userId }, { validatorInfo: update }, { new: true }, (err, diseaseUpdated) => {
+		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
+		if (diseaseUpdated) return res.status(200).send({ message: 'Profile updated ' })
+		else{
+			let disease = new Diseases()
+			disease.createdBy = userId
+			disease.validatorInfo = update
+			disease.save((err, diseaseStored) => {
+				if (err) return res.status(500).send({ message: `Error creating the user: ${err}` })
+				if (diseaseStored) return res.status(200).send({ message: 'Profile updated ' })
+				else return res.status(404).send({ message: `The user does not exist` })
+			})
+		}
+	})
+
+	/*User.findByIdAndUpdate(userId, update, { new: true }, (err, userUpdated) => {
 		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
 		if (userUpdated) return res.status(200).send({ message: 'Profile updated ' })
 		else return res.status(404).send({ message: `The user does not exist` })
-	})
+	})*/
 }
 
 module.exports = {
 	login,
 	checkLogin,
-	getValidator,
 	sendMsgValidator,
 	getProfile,
 	updateProfile
