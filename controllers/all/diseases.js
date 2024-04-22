@@ -194,11 +194,45 @@ function searchDisease(req, res){
     });
 }
 
+function validatedDiseases(req, res){
+
+    let collationConfig = {
+        locale: 'es',
+        strength: 1
+    };
+
+    Diseases.find({}).collation(collationConfig)
+			.select('-_id')
+            .limit(50) // Limitar el número de resultados
+            .exec((err, diseases) => {
+        if (err) return res.status(500).send({ message: `Error making the request: ${err}` });
+        if (!diseases || diseases.length === 0) return res.status(200).send({ message: `No matching diseases found` });
+
+        // Iterar sobre cada enfermedad y añadir el userId cifrado
+        const modifiedDiseases = diseases.map(disease => {
+            // Asegúrate de que la enfermedad es un objeto plano para modificarlo
+            const diseaseObj = disease.toObject();
+            // Cifrar createdBy y asignarlo a userId
+			let userId = diseaseObj.createdBy.toString();
+            diseaseObj.id = encrypt(userId);
+            // Eliminar createdBy para no enviarlo en la respuesta
+			delete diseaseObj.validatorInfo.contactEmail;
+			delete diseaseObj.validatorInfo.acceptTerms;
+			delete diseaseObj.validatorInfo._id;
+            delete diseaseObj.createdBy;
+            return diseaseObj;
+        });
+
+        res.status(200).send({ diseases: modifiedDiseases });
+    });
+}
+
 module.exports = {
 	selectDisease,
 	getDisease,
 	updateDisease,
 	saveDisease,
 	deleteDisease,
-	searchDisease
+	searchDisease,
+	validatedDiseases
 }
