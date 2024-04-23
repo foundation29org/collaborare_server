@@ -34,6 +34,9 @@ async function saveDisease(req, res) {
 				const item = findItemById(req.body.id, jsonData);
 				if (item) {
 					console.log('Item found:', item);
+					eventdb.id = item.id;
+					eventdb.name = item.name;
+					eventdb.updated = Date.now();
 					eventdb.items = item.items;
 				} else {
 					console.log('Item not found for ID:', req.body.id);
