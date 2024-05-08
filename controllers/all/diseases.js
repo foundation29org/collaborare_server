@@ -4,6 +4,7 @@
 
 // add the social-info model
 const Diseases = require('../../models/diseases')
+const DiseasesHistory = require('../../models/diseases_history')
 const serviceAuth = require('../../services/auth')
 const User = require('../../models/user');
 const { decrypt, encrypt } = require('../../services/crypt');
@@ -33,17 +34,13 @@ async function saveDisease(req, res) {
 			if (jsonData) {
 				const item = findItemById(req.body.id, jsonData);
 				if (item) {
-					console.log('Item found:', item);
 					eventdb.id = item.id;
 					eventdb.name = item.name;
 					eventdb.updated = Date.now();
 					eventdb.items = item.items;
 				} else {
-					console.log('Item not found for ID:', req.body.id);
-					console.log('Trying to generate items for:', req.body.name);
 					try {
 						let item_list = await langchain.generate_items_for_disease(req.body.name);
-						console.log('Generated items:', item_list);
 						// Convert the generated items text to an array of items
 						let itemsArray = JSON.parse(item_list.text.replace(/'/g, '"'));
 						eventdb.items = itemsArray;
@@ -69,6 +66,15 @@ async function saveDisease(req, res) {
 					res.status(404).send({ message: 'Eventdb not saved' })
 				}
 			})
+			let diseasesHistory = new DiseasesHistory()
+			diseasesHistory.id = eventdb.id
+			diseasesHistory.name = eventdb.name
+			diseasesHistory.items = eventdb.items
+			diseasesHistory.date = eventdb.date
+			diseasesHistory.updated = eventdb.updated
+			diseasesHistory.createdBy = eventdb.createdBy
+			diseasesHistory.validatorInfo = eventdb.validatorInfo
+			diseasesHistory.save()
 		}
 	})
 
@@ -119,16 +125,25 @@ function updateDisease(req, res) {
 		items: req.body.items,
 		updated: Date.now()
 	}
-	console.log(diseaseId)
-	Diseases.findByIdAndUpdate(diseaseId, update, { select: '-createdBy', new: true }, (err, eventdbUpdated) => {
+	Diseases.findByIdAndUpdate(diseaseId, update, { new: true }, (err, eventdbUpdated) => {
 		if (err) return res.status(500).send({ message: `Error making the request: ${err}` })
 		if (eventdbUpdated) {
-			console.log(eventdbUpdated)
+			let diseasesHistory = new DiseasesHistory()
+			diseasesHistory.id = eventdbUpdated.id
+			diseasesHistory.name = eventdbUpdated.name
+			diseasesHistory.items = eventdbUpdated.items
+			diseasesHistory.date = eventdbUpdated.date
+			diseasesHistory.updated = eventdbUpdated.updated
+			diseasesHistory.createdBy = eventdbUpdated.createdBy
+			diseasesHistory.validatorInfo = eventdbUpdated.validatorInfo
+			diseasesHistory.save()
 			res.status(200).send({ message: 'Eventdb updated' })
 		} else {
 			res.status(404).send({ message: 'Eventdb not updated' })
 		}
 	})
+
+	
 }
 
 function deleteDisease(req, res) {
@@ -155,6 +170,11 @@ function deleteDisease(req, res) {
 			}
 
 		})
+	})
+
+	//delete all from DiseasesHistory if created by userId
+	DiseasesHistory.deleteMany({ createdBy: userId }, (err, eventdb) => {
+		
 	})
 }
 

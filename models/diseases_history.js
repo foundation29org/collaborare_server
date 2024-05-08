@@ -15,7 +15,7 @@ const validatorInfoSchema = Schema({
 	acceptTerms: { type: Boolean, default: false }
 })
 
-const DiseasesSchema = Schema({
+const DiseasesHistorySchema = Schema({
 	id: { type: String, default: ''},
 	name: { type: String, default: ''},
 	items: {type: Object, default: []},
@@ -25,5 +25,5 @@ const DiseasesSchema = Schema({
 	validatorInfo: { type: validatorInfoSchema, default: null},
 })
 
-module.exports = conndbaccounts.model('Diseases',DiseasesSchema)
+module.exports = conndbaccounts.model('DiseasesHistory',DiseasesHistorySchema)
 // we need to export the model so that it is accessible in the rest of the app
