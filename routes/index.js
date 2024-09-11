@@ -51,6 +51,7 @@ api.get('/disease/:userId', diseaseCtrl.getDisease)
 api.put('/disease/:id', auth(roles.OnlyUser), diseaseCtrl.updateDisease)
 api.post('/disease/:userId', auth(roles.OnlyUser), diseaseCtrl.saveDisease)
 api.post('/deletedisease/:userId', auth(roles.OnlyUser), diseaseCtrl.deleteDisease)
+api.post('/previewDisease', diseaseCtrl.previewDisease)
 
 api.get('/searchdisease/:id', diseaseCtrl.searchDisease)
 api.get('/validateddiseases', diseaseCtrl.validatedDiseases)
