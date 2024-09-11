@@ -262,6 +262,38 @@ function validatedDiseases(req, res) {
 		});
 }
 
+async function previewDisease(req, res) {
+	let jsonData = loadJsonFile()
+	let eventdb = new Diseases()
+	if (jsonData) {
+		const item = findItemById(req.body.id, jsonData);
+		if (item) {
+			eventdb.id = item.id;
+			eventdb.name = item.name;
+			eventdb.updated = Date.now();
+			eventdb.items = item.items;
+			return res.status(200).send({ disease: eventdb })
+		} else {
+			try {
+				let item_list = await langchain.generate_items_for_disease(req.body.name);
+				// Convert the generated items text to an array of items
+				let itemsArray = JSON.parse(item_list.text.replace(/'/g, '"'));
+				eventdb.items = itemsArray;
+				eventdb.updated = Date.now()
+				eventdb.id = req.body.id
+				eventdb.name = req.body.name
+				return res.status(200).send({ disease: eventdb })
+			} catch (error) {
+				console.error('Error generating items:', error);
+				return res.status(500).send({ message: 'Error generating items' });
+			}
+		}
+	} else {
+		console.log('JSON data not loaded');
+		return res.status(500).send({ message: 'JSON data not loaded' });
+	}
+}
+
 module.exports = {
 	selectDisease,
 	getDisease,
@@ -269,5 +301,6 @@ module.exports = {
 	saveDisease,
 	deleteDisease,
 	searchDisease,
-	validatedDiseases
+	validatedDiseases,
+	previewDisease
 }
