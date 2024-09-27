@@ -47,6 +47,7 @@ async function saveDisease(req, res) {
 						eventdb.updated = Date.now()
 						eventdb.id = req.body.id
 						eventdb.name = req.body.name
+						eventdb.synonyms = req.body.synonyms
 					} catch (error) {
 						console.error('Error generating items:', error);
 					}
@@ -194,7 +195,12 @@ function searchDisease(req, res) {
 	} else {
 		// Utilizar una expresión regular segura
 		// Evitar expresiones regulares demasiado complejas o largas
-		query.name = { $regex: new RegExp(searchTerm, 'i') };
+		//query.name = { $regex: new RegExp(searchTerm, 'i') };
+		const searchRegex = new RegExp(searchTerm, 'i');
+		query.$or = [
+			{ name: searchRegex },
+			{ synonyms: searchRegex }
+		];
 	}
 
 	let collationConfig = {

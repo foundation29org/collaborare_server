@@ -18,6 +18,7 @@ const validatorInfoSchema = Schema({
 const DiseasesSchema = Schema({
 	id: { type: String, default: ''},
 	name: { type: String, default: ''},
+	synonyms: { type: Array, default: []},
 	items: {type: Object, default: []},
 	date: {type: Date, default: Date.now},
 	updated: {type: Date, default: Date.now},
