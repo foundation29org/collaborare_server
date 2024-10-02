@@ -13,7 +13,7 @@ const insights = require('../../services/insights')
 function sendMsgLogoutSupport(req, res) {
 	let support = new Support()
 	//support.type = 'Home form'
-	support.subject = 'Collaborare support'
+	support.subject = 'CollaboRARE support'
 	support.description = 'Name: ' + req.body.userName + ', Description: ' + req.body.description
 	support.createdBy = "5c77d0492f45d6006c142ab3";
 	//enviamos Email
