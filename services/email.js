@@ -29,7 +29,7 @@ function sendMailSupport (email, supportStored){
       to: TRANSPORTER_OPTIONS.auth.user,
       from: TRANSPORTER_OPTIONS.auth.user,
       bcc: maillistbcc,
-      subject: 'Mensaje para soporte de Collaborare',
+      subject: 'Mensaje para soporte de CollaboRARE',
       template: 'mail_support/_es',
       context: {
         email : email,
@@ -65,7 +65,7 @@ function sendMailValidator (email, subject, message, contactEmail){
       to: contactEmail,
       from: TRANSPORTER_OPTIONS.auth.user,
       bcc: maillistbcc,
-      subject: 'New contact request from Collaborare: '+ subject,
+      subject: 'New contact request from CollaboRARE: '+ subject,
       template: 'mail_validator/_en',
       context: {
         email: email,
@@ -136,7 +136,7 @@ function sendMailControlCall (req){
       to: TRANSPORTER_OPTIONS.auth.user,
       from: TRANSPORTER_OPTIONS.auth.user,
       bcc: maillistbcc,
-      subject: 'Mensaje para soporte de Collaborare - ControlCall',
+      subject: 'Mensaje para soporte de CollaboRARE - ControlCall',
       template: 'mail_error_control_call/_es',
       context: {
         info: JSON.stringify(req)
@@ -161,7 +161,7 @@ function sendMailControlCall (req){
 }
 
 function sendEmailLogin (email, randomstring){
-  var subject='Access Link for Collaborare';
+  var subject='Access Link for CollaboRARE';
   const decoded = new Promise((resolve, reject) => {
 
     var maillistbcc = [

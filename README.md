@@ -9,7 +9,7 @@ Dx29 server
 [![MIT license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
 #### 1. Overview 
-Collaborare
+CollaboRARE
 
 <p>&nbsp;</p>
 <p>&nbsp;</p>
