@@ -167,7 +167,6 @@ function sendEmailLogin (email, randomstring){
     var maillistbcc = [
       'support@foundation29.org',
     ];
-    var urlImg = client_server+'/assets/img/Collaborarerecortado.png';
     var mailOptions = {
       to: email,
       from:'support@foundation29.org',
@@ -176,8 +175,7 @@ function sendEmailLogin (email, randomstring){
       context: {
         client_server : client_server,
         email : email,
-        key : randomstring,
-        urlImg : urlImg
+        key : randomstring
       }
     };
 
