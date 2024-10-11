@@ -13,6 +13,7 @@ function createToken (user){
 	const payload = {
 		//el id siguiente no debería de ser el id privado, así que habrá que cambiarlo
 		sub: idencrypt,
+		email: user.email,
 		iat: moment().unix(),
 		exp: moment().add(1, 'years').unix(),//years //minutes
 		role: user.role
