@@ -1,0 +1,30 @@
+ <div class="container">
+        <h1>Request for opinion on key aspects of {{diseaseName}}</h1>
+        <p>Dear colleague,</p>
+        <p>{{senderName}} is collaborating on a project called <a href="https://collaborare.app" target="_blank">CollaboRARE</a> to identify the most important aspects in managing  {{diseaseName}}. We would like to share with you a list of key aspects and kindly ask for your valuable input.</p>
+        <h2>Proposed list of key aspects:</h2>
+        <ul>
+            {{#each aspectList}}
+                <li>{{this.number}}. {{this.name}}</li>
+            {{/each}}
+        </ul>
+        {{#if additionalComments}}
+        <div class="additional-comments">
+            <h3>Comments:</h3>
+            <p>{{additionalComments}}</p>
+        </div>
+        {{/if}}
+        <div class="highlight">
+            <p><strong>Your collaboration is requested:</strong></p>
+            <ol>
+                <li>Please review the provided list.</li>
+                <li>Based on your experience, create your own list of key aspects for {{diseaseName}}.</li>
+                <li>Feel free to add, remove, or modify items as you see fit.</li>
+                <li>There is no fixed number of aspects; including those that you find most relevant.</li>
+            </ol>
+        </div>
+        <p>We kindly ask you to respond to this email ({{senderEmail}}) with your list of key aspects. Your contribution is essential for improving the development of new therapies based on managing this condition.</p>
+        <p>We greatly appreciate your time and expertise</p>
+        <p>Best regards,</p>
+        <p>{{senderName}}</p>
+    </div>
