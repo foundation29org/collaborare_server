@@ -212,11 +212,8 @@ function sendMailShareDisease (req){
         senderName: req.disease.validatorInfo.organization || 'A CollaboRARE contributor',
         senderEmail: req.disease.validatorInfo.contactEmail,
         diseaseName: req.disease.name,
-        aspectList: req.disease.items.map(item => ({ 
-          number: item.number, 
-          name: item.name 
-        })),
-        additionalComments: req.additionalComments
+        aspectList: req.disease.items.map(item => item.name),
+        additionalComments: req.comments
       }
     };
 
