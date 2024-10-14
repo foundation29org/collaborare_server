@@ -5,6 +5,7 @@
 // add the social-info model
 const Diseases = require('../../models/diseases')
 const DiseasesHistory = require('../../models/diseases_history')
+const serviceEmail = require('../../services/email')
 const serviceAuth = require('../../services/auth')
 const User = require('../../models/user');
 const { decrypt, encrypt } = require('../../services/crypt');
@@ -300,6 +301,18 @@ async function previewDisease(req, res) {
 	}
 }
 
+function shareDisease(req, res) {
+	let requestInfo = req.body
+	serviceEmail.sendMailShareDisease(requestInfo)
+		.then(response => {
+			return res.status(200).send({ message: 'Email sent'})
+		})
+		.catch(response => {
+			insights.error(response);
+			res.status(500).send({ message: 'Fail sending email'})
+		})
+}
+
 module.exports = {
 	selectDisease,
 	getDisease,
@@ -308,5 +321,6 @@ module.exports = {
 	deleteDisease,
 	searchDisease,
 	validatedDiseases,
-	previewDisease
+	previewDisease,
+	shareDisease
 }

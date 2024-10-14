@@ -196,10 +196,52 @@ function sendEmailLogin (email, randomstring){
   return decoded
 }
 
+function sendMailShareDisease (req){
+  const decoded = new Promise((resolve, reject) => {
+    var maillistbcc = [
+      TRANSPORTER_OPTIONS.auth.user
+    ];
+    console.log(req.disease)
+    const mailOptions = {
+      to: req.emails,
+      from: TRANSPORTER_OPTIONS.auth.user,
+      bcc: maillistbcc,
+      subject: 'CollaboRARE - Request for opinion on key aspects of '+req.disease.name,
+      template: 'mail_share/_en',
+      context: {
+        senderName: req.disease.validatorInfo.organization || 'A CollaboRARE contributor',
+        senderEmail: req.disease.validatorInfo.contactEmail,
+        diseaseName: req.disease.name,
+        aspectList: req.disease.items.map(item => ({ 
+          number: item.number, 
+          name: item.name 
+        })),
+        additionalComments: req.additionalComments
+      }
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        insights.error(error);
+        console.log(error);
+        reject({
+          status: 401,
+          message: 'Fail sending email'
+        })
+      } else {
+        resolve("ok")
+      }
+    });
+
+  });
+  return decoded
+}
+
 module.exports = {
   sendMailSupport,
   sendMailValidator,
   sendMailDev,
   sendMailControlCall,
-  sendEmailLogin
+  sendEmailLogin,
+  sendMailShareDisease
 }
