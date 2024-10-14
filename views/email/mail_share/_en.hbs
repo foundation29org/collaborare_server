@@ -3,17 +3,18 @@
         <p>Dear colleague,</p>
         <p>{{senderName}} is collaborating on a project called <a href="https://collaborare.app" target="_blank">CollaboRARE</a> to identify the most important aspects in managing  {{diseaseName}}. We would like to share with you a list of key aspects and kindly ask for your valuable input.</p>
         <h2>Proposed list of key aspects:</h2>
-        <ul>
+        <ol>
             {{#each aspectList}}
-                <li>{{this.number}}. {{this.name}}</li>
+                <li>{{this}}</li>
             {{/each}}
-        </ul>
+        </ol>
         {{#if additionalComments}}
         <div class="additional-comments">
             <h3>Comments:</h3>
             <p>{{additionalComments}}</p>
         </div>
         {{/if}}
+        <br>
         <div class="highlight">
             <p><strong>Your collaboration is requested:</strong></p>
             <ol>
