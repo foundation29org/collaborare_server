@@ -71,3 +71,10 @@ For support, please email support@foundation29.org or use the in-app support fea
 - European Medicines Agency (EMA)
 - Foundation 29
 
+## Related Projects
+
+This server application works in conjunction with the CollaboRARE client. For more information about the client-side implementation, please visit:
+
+[CollaboRARE Client Repository](https://github.com/foundation29org/collaborare_client)
+
+The client provides the user interface and front-end functionality for the CollaboRARE platform.
