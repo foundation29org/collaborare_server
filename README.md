@@ -1,31 +1,73 @@
-<div style="margin-bottom: 1%; padding-bottom: 2%;">
-	<img align="right" width="100px" src="/img/logo.png">
-</div>			
+# CollaboRARE Server
 
-Dx29 server
-===============================================================================================================================
+CollaboRARE is a collaborative platform designed to facilitate the sharing and management of information about rare diseases. This repository contains the backend server code for the CollaboRARE project.
 
-[![Build status](https://f29.visualstudio.com/Raito/_apis/build/status/prod/Raito-server-prod)](https://f29.visualstudio.com/Raito/_build/latest?definitionId=114)   [![Deployment status](https://f29.vsrm.visualstudio.com/_apis/public/Release/badge/88bb841e-8756-480d-9840-a24ba6dd4cb4/14/15)](https://f29.visualstudio.com/Raito/_release?_a=releases&view=mine&definitionId=1)
-[![MIT license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+## Project Overview
 
-#### 1. Overview 
-CollaboRARE
+CollaboRARE is a web application that allows medical professionals and researchers to collaborate on identifying and managing key aspects of rare diseases. The server provides a RESTful API that supports various functionalities such as user authentication, disease management, and collaborative features.
 
-<p>&nbsp;</p>
-<p>&nbsp;</p>
+## Key Features
 
+- User authentication and authorization
+- CRUD operations for rare diseases
+- Support system for users
+- Email notifications
+- Integration with AI services for disease information generation
+- Secure API key validation
 
-<div style="border-top: 1px solid !important;
-	padding-top: 1% !important;
-    padding-right: 1% !important;
-    padding-bottom: 0.1% !important;">
-	<div align="right">
-		<img width="150px" src="/img/logo-foundation-twentynine-footer.png">
-	</div>
-	<div align="right" style="padding-top: 0.5% !important">
-		<p align="right">	
-			Copyright © 2020
-			<a style="color:#009DA0" href="https://www.foundation29.org/" target="_blank"> Foundation29</a>
-		</p>
-	</div>
-<div>
+## Technology Stack
+
+- Node.js
+- Express.js
+- MongoDB with Mongoose
+- JSON Web Tokens (JWT) for authentication
+- Nodemailer for email services
+- Azure Application Insights for monitoring
+- OpenAI integration for content generation
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables (see `config.js.sample`)
+4. Run the server:
+   - For development: `npm run servedev`
+   - For production: `npm start`
+
+## API Documentation
+
+API documentation is available at `/apidoc` when the server is running.
+
+## Project Structure
+
+- `controllers/`: Contains logic for handling API requests
+- `models/`: Defines MongoDB schemas
+- `routes/`: Defines API routes
+- `services/`: Contains utility services (email, authentication, etc.)
+- `middlewares/`: Custom middleware functions
+- `views/`: Email templates
+
+## Security
+
+- API key validation for sensitive routes
+- JWT-based authentication
+- Role-based access control
+
+## Contributing
+
+Please read our contributing guidelines before submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support, please email support@foundation29.org or use the in-app support feature.
+
+## Acknowledgements
+
+- EURORDIS
+- European Medicines Agency (EMA)
+- Foundation 29
+
