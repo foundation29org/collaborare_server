@@ -42,13 +42,63 @@ async function saveDisease(req, res) {
 				} else {
 					try {
 						let item_list = await langchain.generate_items_for_disease(req.body.name);
+						
+						// Check if there was an error from the langchain service
+						if (item_list.status && item_list.status === 500) {
+							console.error("Error generating items:", item_list.msg);
+							return res.status(500).send({ 
+								message: 'Error generating items', 
+								error: item_list.msg,
+								originalText: item_list.originalText 
+							});
+						}
+						
 						// Convert the generated items text to an array of items
-						let itemsArray = JSON.parse(item_list.text.replace(/'/g, '"'));
-						eventdb.items = itemsArray;
-						eventdb.updated = Date.now()
-						eventdb.id = req.body.id
-						eventdb.name = req.body.name
-						eventdb.synonyms = req.body.synonyms
+						try {
+							console.log("JSON original:", item_list.text);
+							
+							// Usar la función robusta para limpiar y corregir el JSON
+							try {
+								let itemsArray = cleanAndFixJSON(item_list.text);
+								
+								// Verificar que el resultado es un array
+								if (!Array.isArray(itemsArray)) {
+									console.error("Response is not an array:", itemsArray);
+									return res.status(500).send({ 
+										message: 'Error: Response is not an array', 
+										text: item_list.text 
+									});
+								}
+								
+								// Verificar que cada elemento tiene la propiedad "name"
+								const missingNameItems = itemsArray.filter(item => !item.hasOwnProperty('name'));
+								if (missingNameItems.length > 0) {
+									console.error("Some items are missing 'name' property:", missingNameItems);
+									// Intentar corregir los elementos que faltan
+									itemsArray = itemsArray.map((item, index) => {
+										if (!item.hasOwnProperty('name')) {
+											return { name: `Item ${index + 1}: ${JSON.stringify(item)}` };
+										}
+										return item;
+									});
+								}
+								
+								eventdb.items = itemsArray;
+								eventdb.updated = Date.now()
+								eventdb.id = req.body.id
+								eventdb.name = req.body.name
+								eventdb.synonyms = req.body.synonyms
+							} catch (jsonError) {
+								console.error("Error parsing JSON:", jsonError, "Text:", item_list.text);
+								return res.status(500).send({ 
+									message: 'Error parsing JSON response', 
+									error: jsonError.message,
+									text: item_list.text 
+								});
+							}
+						} catch (error) {
+							console.error('Error generating items:', error);
+						}
 					} catch (error) {
 						console.error('Error generating items:', error);
 					}
@@ -79,10 +129,6 @@ async function saveDisease(req, res) {
 			diseasesHistory.save()
 		}
 	})
-
-
-
-
 }
 
 function findItemById(id, jsonData) {
@@ -144,8 +190,6 @@ function updateDisease(req, res) {
 			res.status(404).send({ message: 'Eventdb not updated' })
 		}
 	})
-
-	
 }
 
 function deleteDisease(req, res) {
@@ -170,7 +214,6 @@ function deleteDisease(req, res) {
 			} else {
 				res.status(404).send({ message: 'Eventdb not saved' })
 			}
-
 		})
 	})
 
@@ -283,12 +326,63 @@ async function previewDisease(req, res) {
 		} else {
 			try {
 				let item_list = await langchain.generate_items_for_disease(req.body.name);
+				
+				// Check if there was an error from the langchain service
+				if (item_list.status && item_list.status === 500) {
+					console.error("Error generating items:", item_list.msg);
+					return res.status(500).send({ 
+						message: 'Error generating items', 
+						error: item_list.msg,
+						originalText: item_list.originalText 
+					});
+				}
+				
 				// Convert the generated items text to an array of items
-				let itemsArray = JSON.parse(item_list.text.replace(/'/g, '"'));
-				eventdb.items = itemsArray;
-				eventdb.updated = Date.now()
-				eventdb.id = req.body.id
-				eventdb.name = req.body.name
+				try {
+					console.log("JSON original:", item_list.text);
+					
+					// Usar la función robusta para limpiar y corregir el JSON
+					try {
+						let itemsArray = cleanAndFixJSON(item_list.text);
+						
+						// Verificar que el resultado es un array
+						if (!Array.isArray(itemsArray)) {
+							console.error("Response is not an array:", itemsArray);
+							return res.status(500).send({ 
+								message: 'Error: Response is not an array', 
+								text: item_list.text 
+							});
+						}
+						
+						// Verificar que cada elemento tiene la propiedad "name"
+						const missingNameItems = itemsArray.filter(item => !item.hasOwnProperty('name'));
+						if (missingNameItems.length > 0) {
+							console.error("Some items are missing 'name' property:", missingNameItems);
+							// Intentar corregir los elementos que faltan
+							itemsArray = itemsArray.map((item, index) => {
+								if (!item.hasOwnProperty('name')) {
+									return { name: `Item ${index + 1}: ${JSON.stringify(item)}` };
+								}
+								return item;
+							});
+						}
+						
+						eventdb.items = itemsArray;
+						eventdb.updated = Date.now()
+						eventdb.id = req.body.id
+						eventdb.name = req.body.name
+						eventdb.synonyms = req.body.synonyms
+					} catch (jsonError) {
+						console.error("Error parsing JSON:", jsonError, "Text:", item_list.text);
+						return res.status(500).send({ 
+							message: 'Error parsing JSON response', 
+							error: jsonError.message,
+							text: item_list.text 
+						});
+					}
+				} catch (error) {
+					console.error('Error generating items:', error);
+				}
 				return res.status(200).send({ disease: eventdb })
 			} catch (error) {
 				console.error('Error generating items:', error);
@@ -311,6 +405,62 @@ function shareDisease(req, res) {
 			insights.error(response);
 			res.status(500).send({ message: 'Fail sending email'})
 		})
+}
+
+// Función para limpiar y corregir el JSON
+function cleanAndFixJSON(jsonText) {
+	try {
+		// Método 1: Intentar analizar directamente
+		return JSON.parse(jsonText);
+	} catch (error) {
+		console.log("Método 1 falló, intentando método 2");
+		try {
+			// Método 2: Reemplazar apóstrofes y luego analizar
+			const cleaned = jsonText
+				.replace(/(\w)'(\w)/g, '$1\\\'$2') // Escapar apóstrofes dentro de palabras
+				.replace(/'/g, '"') // Reemplazar comillas simples por dobles
+				.replace(/\s+/g, ' ') // Normalizar espacios en blanco
+				.trim();
+			return JSON.parse(cleaned);
+		} catch (error) {
+			console.log("Método 2 falló, intentando método 3");
+			try {
+				// Método 3: Usar una expresión regular para extraer los valores de "name"
+				const nameRegex = /"name"\s*:\s*"([^"]*)"/g;
+				const matches = [...jsonText.matchAll(nameRegex)];
+				if (matches.length > 0) {
+					return matches.map(match => ({ name: match[1] }));
+				}
+				throw new Error("No se encontraron coincidencias de 'name'");
+			} catch (error) {
+				console.log("Método 3 falló, intentando método 4");
+				try {
+					// Método 4: Enfoque más agresivo, eliminar caracteres problemáticos
+					const aggressive = jsonText
+						.replace(/[^\x20-\x7E]/g, '') // Eliminar caracteres no ASCII
+						.replace(/'/g, '"')
+						.replace(/\\/g, '\\\\') // Escapar barras invertidas
+						.replace(/(\w)"(\w)/g, '$1\\"$2') // Escapar comillas dentro de palabras
+						.replace(/([^\\])"/g, '$1\\"') // Escapar comillas no escapadas
+						.replace(/^[^[]*\[/g, '[') // Eliminar todo antes del primer '['
+						.replace(/\][^]]*$/g, ']') // Eliminar todo después del último ']'
+						.trim();
+					
+					// Reconstruir el JSON manualmente
+					const items = aggressive.split('},{').map(item => {
+						const nameMatch = item.match(/"name"\s*:\s*"([^"]*)"/);
+						return nameMatch ? { name: nameMatch[1].replace(/\\"/g, '"') } : null;
+					}).filter(Boolean);
+					
+					if (items.length === 0) throw new Error("No se pudieron extraer elementos");
+					return items;
+				} catch (error) {
+					console.log("Todos los métodos fallaron");
+					throw new Error("No se pudo analizar el JSON después de múltiples intentos");
+				}
+			}
+		}
+	}
 }
 
 module.exports = {
