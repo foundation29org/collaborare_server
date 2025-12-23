@@ -73,11 +73,14 @@ async function generate_items_for_disease(disease){
       
       // Ensure the response is a valid JSON
       try {
-        // Clean the response text
+        // Clean the response text - first remove markdown code blocks
         let cleanText = response.text.trim();
+        // Remove markdown code blocks (```json ... ``` or ``` ... ```)
+        cleanText = cleanText.replace(/^```(?:json)?\s*/gm, '').replace(/\s*```$/gm, '').trim();
         // Try to parse it to validate it's proper JSON
         JSON.parse(cleanText);
         // If no error, return the response
+        response.text = cleanText;
         resolve(response);
       } catch (jsonError) {
         console.log("Error parsing JSON response:", jsonError);
@@ -85,6 +88,10 @@ async function generate_items_for_disease(disease){
         // Try to fix common JSON issues
         try {
           let fixedText = response.text
+            // Remove markdown code blocks first
+            .replace(/^```(?:json)?\s*/gm, '')
+            .replace(/\s*```$/gm, '')
+            .trim()
             .replace(/(\w)'(\w)/g, '$1\\\'$2')  // Escapar apóstrofes dentro de palabras (como patient's)
             .replace(/'/g, '"')  // Replace single quotes with double quotes
             .replace(/\s+/g, ' ') // Normalize whitespace
