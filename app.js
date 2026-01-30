@@ -9,11 +9,33 @@ const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const app = express()
 app.use(compression());
-const serviceEmail = require('./services/email')
 const api = require ('./routes')
 const path = require('path')
 const config= require('./config')
 const allowedOrigins = config.allowedOrigins;
+const insights = require('./services/insights')
+
+// Rutas comunes de bots/ataques (para identificar pero no ignorar el tracking)
+const knownBotRoutes = [
+  '/wp-login.php',
+  '/wp-admin',
+  '/wp-content',
+  '/wp-includes',
+  '/xmlrpc.php',
+  '/.env',
+  '/admin',
+  '/administrator',
+  '/phpmyadmin',
+  '/.git',
+  '/.well-known',
+  '/.htaccess',
+  '/config.php',
+  '/wp-config.php'
+];
+
+function isKnownBotRoute(url) {
+  return knownBotRoutes.some(route => url.toLowerCase().includes(route.toLowerCase()));
+}
 
 function setCrossDomain(req, res, next) {
   const origin = req.headers.origin;
@@ -23,19 +45,24 @@ function setCrossDomain(req, res, next) {
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Origin, Accept, Accept-Language, Origin, User-Agent, x-api-key');
     next();
   }else{
-     //send email
      const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-     const requestInfo = {
-         method: req.method,
-         url: req.url,
-         headers: req.headers,
-         origin: origin,
-         body: req.body, // Asegúrate de que el middleware para parsear el cuerpo ya haya sido usado
-         ip: clientIp,
-         params: req.params,
-         query: req.query,
-       };
-     serviceEmail.sendMailControlCall(requestInfo)
+     const cleanIp = clientIp ? clientIp.split(':')[0] : 'unknown';
+     const isBotRoute = isKnownBotRoute(req.url);
+     
+     // Trackear en Azure Insights (sin enviar emails)
+     const securityEvent = {
+       type: 'UnauthorizedOriginAccess',
+       method: req.method,
+       url: req.url,
+       origin: origin || 'none',
+       ip: cleanIp,
+       userAgent: req.headers['user-agent'] || 'unknown',
+       isKnownBotRoute: isBotRoute,
+       timestamp: new Date().toISOString()
+     };
+     
+     insights.error(JSON.stringify(securityEvent));
+     
      res.status(401).json({ error: 'Origin not allowed' });
   }
 }
